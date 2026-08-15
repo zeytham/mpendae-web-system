@@ -1,0 +1,223 @@
+// This is your Prisma schema file
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum UserRole {
+  admin
+  superadmin
+}
+
+enum Form {
+  FORM_1
+  FORM_2
+  FORM_3
+  FORM_4
+  FORM_5
+  FORM_6
+}
+
+enum StudentStatus {
+  ACTIVE
+  INACTIVE
+  GRADUATED
+  TRANSFERRED
+}
+
+enum NewsStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum EventStatus {
+  UPCOMING
+  ONGOING
+  PAST
+}
+
+enum AdmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+enum FileType {
+  PDF
+  IMAGE
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole @default(admin)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Student {
+  id          String        @id @default(cuid())
+  regNumber   String        @unique
+  firstName   String
+  lastName    String
+  gender      Gender
+  dateOfBirth DateTime
+  form        Form
+  stream      String?
+  parentName  String
+  parentPhone String
+  parentEmail String?
+  address     String?
+  photo       String?
+  photoPubId  String?
+  enrolledAt  DateTime      @default(now())
+  status      StudentStatus @default(ACTIVE)
+  attendance  Attendance[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Teacher {
+  id            String   @id @default(cuid())
+  staffId       String   @unique
+  firstName     String
+  lastName      String
+  gender        Gender
+  email         String   @unique
+  phone         String
+  department    String
+  subjects      String[]
+  qualification String
+  photo         String?
+  photoPubId    String?
+  joinedAt      DateTime @default(now())
+  status        String   @default("ACTIVE")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model News {
+  id          String     @id @default(cuid())
+  title       String
+  slug        String     @unique
+  content     String
+  excerpt     String?
+  coverImage  String?
+  coverPubId  String?
+  author      String
+  category    String
+  status      NewsStatus @default(DRAFT)
+  publishedAt DateTime?
+  views       Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Gallery {
+  id          String   @id @default(cuid())
+  title       String
+  imageUrl    String
+  publicId    String
+  album       String
+  description String?
+  createdAt   DateTime @default(now())
+}
+
+model Event {
+  id          String      @id @default(cuid())
+  title       String
+  description String
+  location    String
+  startDate   DateTime
+  endDate     DateTime?
+  category    String
+  status      EventStatus @default(UPCOMING)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Admission {
+  id            String          @id @default(cuid())
+  firstName     String
+  lastName      String
+  gender        Gender
+  dateOfBirth   DateTime
+  primarySchool String
+  kcpeScore     Float
+  combination   String?
+  parentName    String
+  parentPhone   String
+  parentEmail   String
+  address       String
+  status        AdmissionStatus @default(PENDING)
+  notes         String?
+  referenceNo   String          @unique
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model Attendance {
+  id        String           @id @default(cuid())
+  studentId String
+  student   Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  date      DateTime
+  status    AttendanceStatus @default(PRESENT)
+  notes     String?
+  createdAt DateTime         @default(now())
+
+  @@unique([studentId, date])
+}
+
+model Timetable {
+  id           String   @id @default(cuid())
+  title        String
+  form         Form
+  stream       String?
+  term         String
+  academicYear String
+  fileUrl      String
+  publicId     String
+  fileType     FileType
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model SchoolSettings {
+  id         String  @id @default(cuid())
+  schoolName String  @default("Mpendae Secondary School")
+  motto      String  @default("Elimu ni Ufunguo wa Maisha")
+  address    String  @default("Mpendae, Zanzibar, Tanzania")
+  phone      String  @default("+255 777 000 000")
+  email      String  @default("info@mpendaesecondary.ac.tz")
+  website    String?
+  logoUrl    String?
+  logoPubId  String?
+  about      String?
+  founded    String  @default("1990")
+  principal  String  @default("Mwalimu Mkuu")
+  facebook   String?
+  twitter    String?
+  instagram  String?
+  youtube    String?
+  whatsapp   String?
+}
