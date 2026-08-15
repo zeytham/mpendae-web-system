@@ -15,12 +15,12 @@ const pickAllowed = (body) => {
   return out;
 };
 
-// Fields za umma (mgeni asiye login) — hazina email/phone za binafsi za walimu.
-const PUBLIC_FIELDS = {
-  id: true, staffId: true, firstName: true, lastName: true, gender: true,
-  department: true, subjects: true, qualification: true, photo: true,
-  status: true, joinedAt: true,
-};
+// UAMUZI (baada ya majadiliano na mmiliki wa mradi): teacher email/phone
+// ZINARUHUSIWA kuonekana na public. Hii ni ya makusudi -- tovuti ya umma ina
+// ukurasa /staff wenye vitufe vya "Barua"/"Simu" vinavyoruhusu wazazi na
+// wanafunzi kuwasiliana moja kwa moja na mwalimu, bila lazima ya kupitia
+// ofisi ya shule kwa kila swali dogo. (Awali hapa kulikuwa na kizuizi cha
+// PUBLIC_FIELDS kwa kudhani hii ilikuwa leak ya bahati mbaya -- imeondolewa.)
 
 const getAll = async (req, res, next) => {
   try {
@@ -41,9 +41,6 @@ const getAll = async (req, res, next) => {
     const teachers = await prisma.teacher.findMany({
       where,
       orderBy: [{ department: 'asc' }, { lastName: 'asc' }],
-      // req.user ipo tu kama umeingia (protect/optionalAuth) -> admin anaona
-      // kila kitu (email, phone); mgeni anaona fields za umma tu.
-      ...(req.user ? {} : { select: PUBLIC_FIELDS }),
     });
     res.json(teachers);
   } catch (error) {
@@ -55,7 +52,6 @@ const getOne = async (req, res, next) => {
   try {
     const teacher = await prisma.teacher.findUnique({
       where: { id: req.params.id },
-      ...(req.user ? {} : { select: PUBLIC_FIELDS }),
     });
     if (!teacher) return res.status(404).json({ error: 'Teacher not found.' });
     res.json(teacher);
